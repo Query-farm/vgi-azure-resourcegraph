@@ -1,0 +1,108 @@
+{
+  "7c0f8819133f3521": {
+    "name": "browse_kql_recipes",
+    "outcome": "pass",
+    "reason": "check_sql asserted true",
+    "friction": [],
+    "queries": 1,
+    "grader": "check_sql",
+    "path": {
+      "discovery_calls": 2,
+      "queries": 1,
+      "bind_errors": 0,
+      "requirement_errors": 0,
+      "runtime_errors": 0,
+      "blocked": 0,
+      "redundant_describes": 0,
+      "not_found": 0,
+      "hit_ceiling": false,
+      "score": 100
+    },
+    "suggestions": [],
+    "attempts_used": 1
+  },
+  "627c5b22b3f35fc1": {
+    "name": "count_resources_by_type",
+    "outcome": "fail",
+    "reason": "reference_sql failed: Invalid Input Error: VGI Worker Exception: Error: resourcegraph_query: attach an 'azure_graph' secret (TYPE azure_graph)\nError: resourcegraph_query: attach an 'azure_graph' secret (TYPE azure_graph)\n    at <anonymous> (/Users/rusty/Development/vgi-azure-resourcegraph/src/functions.ts:165:19)\n    at <anonymous> (/Users/rusty/Development/vgi-azure-resourcegraph/node_modules/@query-farm/vgi/src/functions/table.ts:482:24)\n    at <anonymous> (/Users/rusty/Development/vgi-azure-resourcegraph/node_modules/@query-farm/vgi/src/protocol/handlers/function.ts:208:24)\n    at async dispatchStream (/Users/rusty/Development/vgi-azure-resourcegraph/node_modules/@query-farm/vgi-rpc/src/dispatch/stream.ts:157:22)\n    at async serveOne (/Users/rusty/Development/vgi-azure-resourcegraph/node_modules/@query-farm/vgi-rpc/src/server.ts:357:15)\n    at async serveConnection (/Users/rusty/Development/vgi-azure-resourcegraph/node_modules/@query-farm/vgi-rpc/src/server.ts:214:20)\n    at async run (/Users/rusty/Development/vgi-azure-resourcegraph/node_modules/@query-farm/vgi-rpc/src/server.ts:182:16)\n    at processTicksAndRejections (native:7:39) [worker: bun run /Users/rusty/Development/vgi-azure-resourcegraph/src/worker.ts]",
+    "friction": [
+      "No 'azure_graph' secret is attached, so resourcegraph_query cannot be executed or its output shape empirically confirmed \u2014 every path to real data is credential-gated and the catalog offers no sample/fixture mode.",
+      "The docs say 'extract fields from each JSON string' but never document the JSON keys for aggregate queries. That `summarize count() by type` yields the key `count_` (ARG's default name for an unaliased count()) is Kusto knowledge, not something the catalog states; a recipe-level example of the result JSON, or aliasing the recipe's KQL to `summarize resource_count = count() by type`, would remove the guess."
+    ],
+    "queries": 2,
+    "grader": "reference",
+    "path": {
+      "discovery_calls": 3,
+      "queries": 2,
+      "bind_errors": 0,
+      "requirement_errors": 0,
+      "runtime_errors": 1,
+      "blocked": 0,
+      "redundant_describes": 0,
+      "not_found": 0,
+      "hit_ceiling": false,
+      "score": 92
+    },
+    "suggestions": [
+      "Analyst noted: No 'azure_graph' secret is attached, so resourcegraph_query cannot be executed or its output shape empirically confirmed \u2014 every path to real data is credential-gated and the catalog offers no sample/fixture mode.",
+      "Analyst noted: The docs say 'extract fields from each JSON string' but never document the JSON keys for aggregate queries. That `summarize count() by type` yields the key `count_` (ARG's default name for an unaliased count()) is Kusto knowledge, not something the catalog states; a recipe-level example of the result JSON, or aliasing the recipe's KQL to `summarize resource_count = count() by type`, would remove the guess."
+    ],
+    "attempts_used": 1
+  },
+  "b98cbb1aa3d6edaf": {
+    "name": "list_storage_accounts",
+    "outcome": "fail",
+    "reason": "The query was never executed (no azure_graph credential), so no storage account names or resource groups were returned \u2014 only an unrun statement.",
+    "friction": [
+      "resourcegraph_query is the only data-bearing object in the catalog and it hard-fails without an 'azure_graph' secret, but nothing in the browsable surface says how to attach one \u2014 no CREATE SECRET example, no required-fields list (tenant/client id/secret?). kql_recipes is advertised as the credential-free entry point, yet every recipe it offers is unusable until that undocumented setup step happens.",
+      "The failure is only discoverable by running a query. Neither list_tables nor describe_function's summary line flags the credential requirement up front; it appears mid-paragraph in doc_llm ('Requires an app-only azure_graph secret'), so an agent that reads only the description and argument docs will write a correct query and still hit a wall."
+    ],
+    "queries": 2,
+    "grader": "judge",
+    "path": {
+      "discovery_calls": 3,
+      "queries": 2,
+      "bind_errors": 0,
+      "requirement_errors": 0,
+      "runtime_errors": 1,
+      "blocked": 0,
+      "redundant_describes": 0,
+      "not_found": 0,
+      "hit_ceiling": false,
+      "score": 92
+    },
+    "suggestions": [
+      "Analyst noted: resourcegraph_query is the only data-bearing object in the catalog and it hard-fails without an 'azure_graph' secret, but nothing in the browsable surface says how to attach one \u2014 no CREATE SECRET example, no required-fields list (tenant/client id/secret?). kql_recipes is advertised as the credential-free entry point, yet every recipe it offers is unusable until that undocumented setup step happens.",
+      "Analyst noted: The failure is only discoverable by running a query. Neither list_tables nor describe_function's summary line flags the credential requirement up front; it appears mid-paragraph in doc_llm ('Requires an app-only azure_graph secret'), so an agent that reads only the description and argument docs will write a correct query and still hit a wall."
+    ],
+    "attempts_used": 1
+  },
+  "9b1acaa8bf93f7eb": {
+    "name": "scope_to_subscription",
+    "outcome": "partial",
+    "reason": "Correctly identified and used the `subscriptions => '<guid>'` named argument on azure.main.resourcegraph_query rather than an unscoped scan, but never executed a successful query (no azure_graph secret) and only used a placeholder GUID, so the scoped result was never demonstrated.",
+    "friction": [
+      "The `subscriptions` argument description was truncated in describe_function output, so the exact separator convention had to be taken from the function-level doc_llm ('comma-separated GUIDs; empty = every readable subscription') rather than the per-argument doc.",
+      "No sample or test credential is available in the catalog, so no query against resourcegraph_query can be executed end-to-end \u2014 only the credential-free kql_recipes view is queryable. The error message is clear about what is missing but does not say how to create the azure_graph secret (no CREATE SECRET example in any doc string I could reach)."
+    ],
+    "queries": 3,
+    "grader": "judge",
+    "path": {
+      "discovery_calls": 3,
+      "queries": 3,
+      "bind_errors": 0,
+      "requirement_errors": 0,
+      "runtime_errors": 2,
+      "blocked": 0,
+      "redundant_describes": 0,
+      "not_found": 0,
+      "hit_ceiling": false,
+      "score": 84
+    },
+    "suggestions": [
+      "Analyst noted: The `subscriptions` argument description was truncated in describe_function output, so the exact separator convention had to be taken from the function-level doc_llm ('comma-separated GUIDs; empty = every readable subscription') rather than the per-argument doc.",
+      "Analyst noted: No sample or test credential is available in the catalog, so no query against resourcegraph_query can be executed end-to-end \u2014 only the credential-free kql_recipes view is queryable. The error message is clear about what is missing but does not say how to create the azure_graph secret (no CREATE SECRET example in any doc string I could reach)."
+    ],
+    "attempts_used": 1
+  }
+}

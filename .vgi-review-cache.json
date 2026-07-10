@@ -1,0 +1,66 @@
+{
+  "5588a0ee75a79b56": {
+    "object": "azure",
+    "kind": "catalog",
+    "scores": {
+      "accuracy": 4,
+      "clarity": 5,
+      "completeness": 3,
+      "audience_fit": 4
+    },
+    "suggestions": [
+      "The doc_md bullet list and doc_llm both present resourcegraph_query as the catalog's only object, but the catalog also ships the credential-free `azure.main.kql_recipes` view \u2014 the one thing an agent can use before it has a secret. Add a second bullet for it and a sentence in doc_llm telling an unauthenticated agent to start there.",
+      "\"returns one JSON `result` row per matching resource\" is wrong for aggregating KQL: `Resources | summarize count() by type` (shipped as the `count_by_type` recipe) returns one row per type, not per resource. Restate as \"one JSON `result` row per row the KQL query produces \u2014 one per resource for `project`/`where` queries, one per group for `summarize`.\"",
+      "Add a copy-pasteable `CREATE SECRET ... (TYPE azure_graph, tenant_id '...', client_id '...', client_secret '...')` statement; the docs name the three fields and the Reader requirement but never show the statement an agent must emit, and `process()` throws \"attach an 'azure_graph' secret\" with no syntax hint."
+    ],
+    "summary": "Accurate on the snapshot/no-cursor contract and well written, but hides the credential-free discovery view and over-claims one row per resource."
+  },
+  "21202c168998dd2f": {
+    "object": "azure.main",
+    "kind": "schema",
+    "scores": {
+      "accuracy": 4,
+      "clarity": 4,
+      "completeness": 3,
+      "audience_fit": 4
+    },
+    "suggestions": [
+      "The doc_md table has a Function column with one row and no Views section, and doc_llm opens \"The single function...\" \u2014 yet `kql_recipes` lives in this exact schema. Add a second table (`| View | Purpose |` \u2192 `kql_recipes` | browse curated KQL without a secret) so schema-level introspection surfaces both objects.",
+      "The schema declares a `vgi.categories` registry with a `discovery` category whose only member is `kql_recipes`, but neither doc mentions categories or discovery. Mention that objects are tagged `resource-inventory` vs `discovery` so an agent can route \"what can I do without credentials?\" to the latter.",
+      "Same per-resource over-claim as the catalog: `summarize` queries yield one row per group. Fix the Returns cell to \"one JSON `result` string per KQL output row\"."
+    ],
+    "summary": "Clean summary of the query surface, but the function-only framing contradicts the schema's own view and category registry."
+  },
+  "efdd0da2505db208": {
+    "object": "azure.main.kql_recipes",
+    "kind": "view",
+    "scores": {
+      "accuracy": 5,
+      "clarity": 5,
+      "completeness": 4,
+      "audience_fit": 4
+    },
+    "suggestions": [
+      "\"drops straight into resourcegraph_query's first argument\" is a trap for four of the seven recipes: `storage_accounts`, `virtual_machines`, `public_ip_addresses` embed single quotes (`type =~ 'microsoft.storage/storageaccounts'`), so pasting the value into a SQL literal breaks. Either say the quotes must be doubled/dollar-quoted, or show the no-paste form: `SELECT r.result FROM kql_recipes k, resourcegraph_query(k.kql) r WHERE k.name = 'storage_accounts'` \u2014 and if lateral table-function args aren't supported, say so explicitly.",
+      "Add the row count and the shape of the result to doc_llm (\"7 recipes; all are `Resources`-table queries\") so an agent knows the menu is small enough to SELECT * and doesn't plan a paginated browse.",
+      "Note per-recipe what the output rows are: `count_by_type` and `count_by_resource_group` are `summarize` queries whose `result` JSON has `type`/`count_` keys, not resource fields \u2014 the column comment on `kql` implies every recipe yields resources."
+    ],
+    "summary": "Prose matches the seven VALUES rows exactly; the main gap is that the advertised copy-paste path breaks on the quoted recipes."
+  },
+  "eda18026bd07adf5": {
+    "object": "azure.main.resourcegraph_query",
+    "kind": "table_function",
+    "scores": {
+      "accuracy": 3,
+      "clarity": 5,
+      "completeness": 3,
+      "audience_fit": 4
+    },
+    "suggestions": [
+      "`page_size`'s \"Paging is transparent (the whole snapshot is returned regardless)\" is false on the Cloudflare edge profile: `wouldExceedEdgeBudget` throws `EstateTooLargeForEdge` once a scan hits 900 pages, and the guidance (fan out one scan per subscription GUID) exists only in the exception message. Document the ~900-page ceiling and the fan-out remedy in doc_llm so an agent can plan around it instead of discovering it mid-scan.",
+      "`page_size`'s \"larger values are clamped\" understates `clampTop`: it also truncates fractions and silently maps NULL, 0, and negatives to 1000 rather than erroring. Say \"values \u2264 0, NULL, or non-finite fall back to 1000; fractional values are truncated\" \u2014 an agent passing `page_size := 0` expecting \"unlimited\" gets the max with no signal.",
+      "\"one JSON `result` row per matching resource\" is contradicted by the function's own second example, which groups a `project`ed column \u2014 and by `summarize` KQL, which emits one row per group with aggregate keys. Reword to \"one row per KQL output row\" in the description, doc_llm, doc_md, and the `kql` argDoc, since agents copy this claim into their extraction plans."
+    ],
+    "summary": "Argument docs are precise and example-rich, but the transparent-paging and per-resource claims are both false in cases the code actually handles."
+  }
+}
