@@ -27,6 +27,29 @@ import type { GraphClient } from "@vgi-azure/graph-core";
 
 export type ClientFactory = (secret: Record<string, unknown>) => GraphClient;
 
+// Shown examples for resourcegraph_query. Shared verbatim by the native `examples`
+// field (SQL-only — DuckDB's duckdb_functions().examples carrier drops descriptions)
+// and the `vgi.example_queries` tag (which preserves the description, VGI515). Keep
+// them byte-identical so both surfaces agree.
+const RESOURCEGRAPH_EXAMPLES = [
+  {
+    sql: "SELECT result FROM azure.main.resourcegraph_query('Resources | project name, type, location') LIMIT 100",
+    description: "First 100 resources as JSON, projecting name, type, and location",
+  },
+  {
+    sql: "SELECT result ->> 'type' AS type, count(*) AS n FROM azure.main.resourcegraph_query('Resources | project type') GROUP BY 1 ORDER BY n DESC",
+    description: "Count resources by type across the whole estate",
+  },
+  {
+    sql: "SELECT result ->> 'name' AS name, result ->> 'resourceGroup' AS resource_group FROM azure.main.resourcegraph_query('Resources | where type =~ ''microsoft.storage/storageaccounts'' | project name, resourceGroup') ORDER BY name",
+    description: "List storage account names alongside their resource group",
+  },
+  {
+    sql: "SELECT result FROM azure.main.resourcegraph_query('Resources | project name, location', subscriptions := '00000000-0000-0000-0000-000000000000', page_size := 500)",
+    description: "Scope the query to one subscription GUID with a 500-resource page size",
+  },
+];
+
 export interface Args {
   /** KQL query, e.g. 'Resources | project name, location'. Required (positional). */
   kql: string;
@@ -81,20 +104,7 @@ export function makeResourceGraphFunction(clientFactory: ClientFactory, isEdge =
         "1000, which is also the maximum; larger values are clamped. Paging is transparent (the whole " +
         "snapshot is returned regardless). Named (page_size := 500).",
     },
-    examples: [
-      {
-        sql: "SELECT result FROM azure.main.resourcegraph_query('Resources | project name, type, location')",
-        description: "All resources as JSON, projecting name, type, and location",
-      },
-      {
-        sql: "SELECT result ->> 'type' AS type, count(*) FROM azure.main.resourcegraph_query('Resources | project type') GROUP BY 1 ORDER BY 2 DESC",
-        description: "Count resources by type across the whole estate",
-      },
-      {
-        sql: "SELECT result FROM azure.main.resourcegraph_query('Resources | project name, location', subscriptions := '00000000-0000-0000-0000-000000000000', page_size := 500)",
-        description: "Scope the query to one subscription with a 500-resource page size",
-      },
-    ],
+    examples: RESOURCEGRAPH_EXAMPLES,
     tags: {
       "vgi.category": "resource-inventory",
       "vgi.title": "Azure Resource Graph Query",
@@ -128,6 +138,9 @@ export function makeResourceGraphFunction(clientFactory: ClientFactory, isEdge =
         "(`page_size :=`, default and max 1000). Runnable, catalog-qualified queries live in this " +
         "object's `examples` and the schema's `vgi.example_queries`; browse `azure.main.kql_recipes` " +
         "for a credential-free menu of ready-to-paste KQL.",
+      // Mirror of the native `examples` field WITH descriptions preserved (VGI515):
+      // duckdb_functions().examples carries the SQL only, so the described JSON lives here.
+      "vgi.example_queries": JSON.stringify(RESOURCEGRAPH_EXAMPLES),
       "vgi.result_columns_schema": JSON.stringify([
         {
           name: "result",
