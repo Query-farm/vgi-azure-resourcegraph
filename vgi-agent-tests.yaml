@@ -1,0 +1,39 @@
+# Private grader sidecar for `vgi-lint simulate` (and `lint`'s VGI520 coverage). The worker
+# publishes only task names + prompts in `vgi.agent_test_tasks` (src/catalog.ts); these
+# grader fields are keyed by that name and never sent to the analyst agent.
+#
+# Live ARG queries require an azure_graph secret and return tenant-specific,
+# non-deterministic data, so those tasks are graded by `success_criteria` (LLM judge) rather
+# than an exact-compare `reference_sql` (which would need live credentials and stable ground
+# truth). `reference_sql` on the first task is the canonical call shape (it names
+# resourcegraph_query so VGI520 coverage counts it), not an exact-value oracle. The
+# credential-free kql_recipes view IS graded by an exact `check_sql`.
+tasks:
+  - name: count_resources_by_type
+    reference_sql: >-
+      SELECT result ->> 'type' AS type, count(*) AS n FROM
+      azure.main.resourcegraph_query('Resources | project type') GROUP BY 1 ORDER BY 2 DESC
+    success_criteria: >-
+      The answer calls azure.main.resourcegraph_query with a KQL query such as 'Resources |
+      summarize count() by type' (or counts per type client-side by extracting the type field
+      from the JSON result column), and returns a count grouped by resource type.
+
+  - name: list_storage_accounts
+    success_criteria: >-
+      The answer calls azure.main.resourcegraph_query with KQL filtering to type ==
+      'microsoft.storage/storageaccounts' (or filters the JSON result), and returns each
+      storage account's name together with its resource group.
+
+  - name: scope_to_subscription
+    success_criteria: >-
+      The answer calls azure.main.resourcegraph_query and passes the subscription GUID via the
+      subscriptions argument (subscriptions := '<guid>'), rather than querying every
+      subscription.
+
+  - name: browse_kql_recipes
+    check_sql: >-
+      SELECT count(*) > 0 FROM azure.main.kql_recipes
+    success_criteria: >-
+      The answer browses the azure.main.kql_recipes view (a credential-free menu of curated
+      KQL) and explains that a recipe's kql value drops straight into resourcegraph_query's
+      first argument.

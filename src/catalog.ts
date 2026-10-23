@@ -75,41 +75,27 @@ const CATALOG_TAGS: Record<string, string> = {
       sql: "SELECT result FROM azure.main.resourcegraph_query('Resources | project name, type, location') LIMIT 0",
     },
   ]),
-  // The agent-suitability suite (VGI152), catalog only. Live ARG queries require an
-  // azure_graph secret and return tenant-specific, non-deterministic data, so those tasks
-  // are graded by success_criteria (LLM judge) rather than an exact-compare reference_sql
-  // (which would need live credentials and stable ground truth). reference_sql on the first
-  // task is the canonical call shape — it names resourcegraph_query so coverage counts it
-  // (VGI520) — not an exact-value oracle. The credential-free kql_recipes view IS graded by
-  // an exact check_sql. Grader-only fields are never shown to the analyst.
+  // The agent-suitability suite (VGI152), catalog only. Only each task's name + prompt is
+  // published here (VGI416); the grader fields (reference_sql / check_sql / success_criteria)
+  // live in the private sidecar vgi-agent-tests.yaml, keyed by task name, and are never
+  // shown to the analyst.
   "vgi.agent_test_tasks": JSON.stringify([
     {
       name: "count_resources_by_type",
       prompt: "Using Azure Resource Graph, how many resources of each type exist across the estate?",
-      reference_sql:
-        "SELECT result ->> 'type' AS type, count(*) AS n FROM azure.main.resourcegraph_query('Resources | project type') GROUP BY 1 ORDER BY 2 DESC",
-      success_criteria:
-        "The answer calls azure.main.resourcegraph_query with a KQL query such as 'Resources | summarize count() by type' (or counts per type client-side by extracting the type field from the JSON result column), and returns a count grouped by resource type.",
     },
     {
       name: "list_storage_accounts",
       prompt: "List the Azure storage accounts and the resource group each one lives in.",
-      success_criteria:
-        "The answer calls azure.main.resourcegraph_query with KQL filtering to type == 'microsoft.storage/storageaccounts' (or filters the JSON result), and returns each storage account's name together with its resource group.",
     },
     {
       name: "scope_to_subscription",
       prompt: "Run a Resource Graph query but restrict it to a single subscription GUID.",
-      success_criteria:
-        "The answer calls azure.main.resourcegraph_query and passes the subscription GUID via the subscriptions argument (subscriptions := '<guid>'), rather than querying every subscription.",
     },
     {
       name: "browse_kql_recipes",
       prompt:
         "Before I supply credentials, which ready-made Azure Resource Graph KQL queries can I browse and reuse?",
-      check_sql: "SELECT count(*) > 0 FROM azure.main.kql_recipes",
-      success_criteria:
-        "The answer browses the azure.main.kql_recipes view (a credential-free menu of curated KQL) and explains that a recipe's kql value drops straight into resourcegraph_query's first argument.",
     },
   ]),
 };
