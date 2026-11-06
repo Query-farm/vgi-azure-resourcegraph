@@ -54,7 +54,7 @@ const catalogInterface = new ReadOnlyCatalogInterface(makeCatalog(functions), re
 serveVgiWorker({
   name: "azure-resourcegraph",
   doc: "Azure Resource Graph (KQL) queries over your ARM estate, as DuckDB table functions.",
-  version: "0.1.0",
+  version: "0.2.0",
   repositoryUrl: "https://github.com/Query-farm/vgi-azure-resourcegraph",
   serverId: "vgi-azure-resourcegraph",
   registry,
