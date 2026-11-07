@@ -83,6 +83,9 @@ export function makeResourceGraphFunction(clientFactory: ClientFactory, isEdge =
   const schema = SINGLE_JSON_RESULT_SCHEMA;
   return defineTableFunction<Args, State>({
     name: "resourcegraph_query",
+    // Request the azure_graph secret at bind so the connector delivers it (a
+    // missing secret resolves to nothing, so credential-free LIMIT 0 binds still work).
+    requiredSecrets: ["azure_graph"],
     description:
       "Azure Resource Graph: one KQL query over the ARM estate, returned as one JSON `result` row per resource. " +
       "Point-in-time snapshot paginated by an in-scan $skipToken — no cross-scan cursor, no change tracking.",
