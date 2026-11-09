@@ -23,6 +23,7 @@ export const AZURE_GRAPH_SECRET: SecretTypeDescriptor = {
 /** Catalog-level tags: docs, discovery, provenance, and the agent-test suite. */
 const CATALOG_TAGS: Record<string, string> = {
   "vgi.title": "Azure Resource Graph",
+  "vgi.subtitle": "Inventory every Azure resource across your subscriptions with one KQL query from SQL.",
   "vgi.doc_llm":
     "Azure Resource Graph (ARG) as a single SQL table function. Reach for it to inventory a whole " +
     "Azure ARM estate with one KQL (Kusto Query Language) query: it runs the query across every " +
