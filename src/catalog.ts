@@ -13,11 +13,34 @@ const ISSUES = `${REPO}/issues`;
 export const AZURE_GRAPH_SECRET: SecretTypeDescriptor = {
   name: "azure_graph",
   description: "Microsoft Entra app-only (client-credentials) credentials for Azure ARM / Microsoft Graph",
-  schema: new Schema([
-    new Field("tenant_id", new Utf8(), true),
-    new Field("client_id", new Utf8(), true),
-    new Field("client_secret", new Utf8(), true, new Map([["redact", "true"]])),
-  ]),
+  // vgi_doc (per parameter) and vgi_doc_url (schema) document where each credential
+  // comes from (vgi-lint VGI1011 / VGI1012).
+  schema: new Schema(
+    [
+      new Field(
+        "tenant_id",
+        new Utf8(),
+        true,
+        new Map([["vgi_doc", "Directory (tenant) ID of the Microsoft Entra tenant, from the app registration's Overview page"]]),
+      ),
+      new Field(
+        "client_id",
+        new Utf8(),
+        true,
+        new Map([["vgi_doc", "Application (client) ID of the Microsoft Entra app registration, from its Overview page"]]),
+      ),
+      new Field(
+        "client_secret",
+        new Utf8(),
+        true,
+        new Map([
+          ["redact", "true"],
+          ["vgi_doc", "Client secret value created under the app registration's Certificates & secrets page (shown once, at creation)"],
+        ]),
+      ),
+    ],
+    new Map([["vgi_doc_url", "https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app"]]),
+  ),
 };
 
 /** Catalog-level tags: docs, discovery, provenance, and the agent-test suite. */
