@@ -8,7 +8,7 @@
 //   POST /                                     → the VGI RPC transport (what DuckDB attaches to)
 //
 // Run it:  PORT=8000 bun run scripts/serve.ts   (default port 8787)
-// Attach:  ATTACH 'arg' AS arg (TYPE vgi, LOCATION 'http://localhost:8000');
+// Attach:  ATTACH 'azure' AS azure (TYPE vgi, LOCATION 'http://localhost:8000');
 //
 // Everything below the worker's own identity — protocol assembly, state-token
 // signing, CORS, the landing surface, Bun.serve — lives in the SDK's

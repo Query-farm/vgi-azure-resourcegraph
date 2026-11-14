@@ -28,12 +28,12 @@ export const RESOURCES_PER_SUBSCRIPTION_EXAMPLE: ExampleQuery = {
 /** Resources deployed outside their resource group's region (a governance sweep). */
 export const OUT_OF_REGION_RESOURCES_EXAMPLE: ExampleQuery = {
   description:
-    "Find resources deployed in a different region than their resource group (global resources excluded): join Resources to the resource-group rows of ResourceContainers",
+    "Find resources deployed in a different region than their resource group (global and location-less resources excluded): join Resources to the resource-group rows of ResourceContainers",
   sql:
     "WITH rgs AS (SELECT result ->> 'subscriptionId' AS subscription_id, lower(result ->> 'name') AS resource_group, result ->> 'location' AS group_location " +
     "FROM azure.main.resourcegraph_query('ResourceContainers | where type =~ ''microsoft.resources/subscriptions/resourcegroups'' | project subscriptionId, name, location')) " +
     "SELECT g.resource_group, r.result ->> 'name' AS name, r.result ->> 'type' AS type, r.result ->> 'location' AS location, g.group_location " +
-    "FROM azure.main.resourcegraph_query('Resources | where location != ''global'' | project name, type, resourceGroup, location, subscriptionId') r " +
+    "FROM azure.main.resourcegraph_query('Resources | where isnotempty(location) and location != ''global'' | project name, type, resourceGroup, location, subscriptionId') r " +
     "JOIN rgs g ON g.subscription_id = r.result ->> 'subscriptionId' AND g.resource_group = lower(r.result ->> 'resourceGroup') " +
     "WHERE r.result ->> 'location' <> g.group_location " +
     "ORDER BY g.resource_group, name",
