@@ -24,13 +24,15 @@ import {
 } from "./resource-graph.js";
 import { SINGLE_JSON_RESULT_SCHEMA, buildResultBatch } from "./schema.js";
 import type { GraphClient } from "@vgi-azure/graph-core";
+import { COMPOSED_EXAMPLES } from "./examples.js";
 
 export type ClientFactory = (secret: Record<string, unknown>) => GraphClient;
 
 // Shown examples for resourcegraph_query. Shared verbatim by the native `examples`
 // field (SQL-only — DuckDB's duckdb_functions().examples carrier drops descriptions)
 // and the `vgi.example_queries` tag (which preserves the description, VGI515). Keep
-// them byte-identical so both surfaces agree.
+// them byte-identical so both surfaces agree. The composed (two-scan join) examples
+// sit within the first five, where the vgi-lint agent simulator shows them.
 const RESOURCEGRAPH_EXAMPLES = [
   {
     sql: "SELECT result FROM azure.main.resourcegraph_query('Resources | project name, type, location') LIMIT 100",
@@ -40,6 +42,7 @@ const RESOURCEGRAPH_EXAMPLES = [
     sql: "SELECT result ->> 'type' AS type, count(*) AS n FROM azure.main.resourcegraph_query('Resources | project type') GROUP BY 1 ORDER BY n DESC",
     description: "Count resources by type across the whole estate",
   },
+  ...COMPOSED_EXAMPLES.map(({ sql, description }) => ({ sql, description })),
   {
     sql: "SELECT result ->> 'name' AS name, result ->> 'resourceGroup' AS resource_group FROM azure.main.resourcegraph_query('Resources | where type =~ ''microsoft.storage/storageaccounts'' | project name, resourceGroup') ORDER BY name",
     description: "List storage account names alongside their resource group",

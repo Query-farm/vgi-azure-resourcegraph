@@ -30,6 +30,16 @@ tasks:
       subscriptions argument (subscriptions := '<guid>'), rather than querying every
       subscription.
 
+  - name: storage_accounts_with_subscription_name
+    success_criteria: >-
+      The answer reads storage accounts with azure.main.resourcegraph_query (type =~
+      'microsoft.storage/storageaccounts') AND resolves each account's subscriptionId to the
+      subscription display name from the ResourceContainers table (rows of type
+      'microsoft.resources/subscriptions', whose name is the display name) -- either by joining
+      two resourcegraph_query results in SQL on subscriptionId or with a KQL join inside one
+      query. It returns each storage account's name with that display name. An answer that only
+      returns the subscriptionId GUID, or invents names, fails.
+
   - name: browse_kql_recipes
     check_sql: >-
       SELECT count(*) > 0 FROM azure.main.kql_recipes

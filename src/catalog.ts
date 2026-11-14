@@ -6,6 +6,7 @@
 
 import { Schema, Field, Utf8 } from "@query-farm/apache-arrow";
 import type { CatalogDescriptor, SecretTypeDescriptor, VgiFunction } from "@query-farm/vgi";
+import { COMPOSED_EXAMPLES } from "./examples.js";
 
 const REPO = "https://github.com/Query-farm/vgi-azure-resourcegraph";
 const ISSUES = `${REPO}/issues`;
@@ -117,6 +118,11 @@ const CATALOG_TAGS: Record<string, string> = {
       prompt: "Run a Resource Graph query but restrict it to a single subscription GUID.",
     },
     {
+      name: "storage_accounts_with_subscription_name",
+      prompt:
+        "List every Azure storage account together with the display name (not the GUID) of the subscription it belongs to.",
+    },
+    {
       name: "browse_kql_recipes",
       prompt:
         "Before I supply credentials, which ready-made Azure Resource Graph KQL queries can I browse and reuse?",
@@ -173,6 +179,7 @@ const SCHEMA_TAGS: Record<string, string> = {
       description: "Count resources by type across the estate",
       sql: "SELECT result ->> 'type' AS type, count(*) FROM azure.main.resourcegraph_query('Resources | project type') GROUP BY 1 ORDER BY 2 DESC",
     },
+    ...COMPOSED_EXAMPLES,
     {
       description: "List storage accounts with their resource group",
       sql: "SELECT result ->> 'name' AS name, result ->> 'resourceGroup' AS resource_group FROM azure.main.resourcegraph_query('Resources | where type =~ ''microsoft.storage/storageaccounts'' | project name, resourceGroup')",

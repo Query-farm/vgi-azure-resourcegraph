@@ -1,9 +1,10 @@
 // vgi-azure-resourcegraph stdio worker entry. DuckDB spawns this and ATTACHes it:
-//   ATTACH 'arg' AS arg (TYPE vgi, LOCATION '/path/to/worker.ts');
+//   ATTACH 'azure' AS azure (TYPE vgi, LOCATION '/path/to/bin/vgi-azure-resourcegraph-worker');
 //   CREATE SECRET a (TYPE azure_graph, TENANT_ID '…', CLIENT_ID '…', CLIENT_SECRET '…');
-//   SELECT * FROM arg.resourcegraph_query(kql := 'Resources | project name, location');
-//   SELECT * FROM arg.resourcegraph_query(
-//     kql := 'Resources | project name', subscriptions := '<guid1>,<guid2>', page_size := 500);
+//   SELECT result FROM azure.main.resourcegraph_query('Resources | project name, location');
+//   SELECT result FROM azure.main.resourcegraph_query(
+//     'Resources | project name', subscriptions := '<guid1>,<guid2>', page_size := 500);
+// kql is positional only — `kql := '…'` fails to bind.
 //
 // AUDIENCE = arm: ARG lives on the ARM control plane, so the clientFactory below hands
 // the query a https://management.azure.com/.default token — NEVER a graph.microsoft.com

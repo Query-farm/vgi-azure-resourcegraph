@@ -18,9 +18,20 @@ SELECT result FROM azure.main.resourcegraph_query('Resources | project name, typ
 
 -- Count resources by type across the estate
 SELECT result ->> 'type' AS type, count(*) FROM azure.main.resourcegraph_query('Resources | project type') GROUP BY 1 ORDER BY 2 DESC;
+
+-- Count resources per subscription by display name: join a Resources count per
+-- subscriptionId to the subscription rows of ResourceContainers
+WITH subs AS (
+  SELECT result ->> 'subscriptionId' AS subscription_id, result ->> 'name' AS subscription_name
+  FROM azure.main.resourcegraph_query('ResourceContainers | where type =~ ''microsoft.resources/subscriptions'' | project subscriptionId, name')
+)
+SELECT s.subscription_name, CAST(r.result ->> 'n' AS BIGINT) AS resources
+FROM azure.main.resourcegraph_query('Resources | summarize n = count() by subscriptionId') r
+JOIN subs s ON s.subscription_id = r.result ->> 'subscriptionId'
+ORDER BY resources DESC, s.subscription_name;
 ```
 
-The first example is a credential-free `LIMIT 0` bind probe: it checks that `resourcegraph_query` binds and shows its result column without calling Azure. The second returns real rows, so it needs an `azure_graph` secret (see [Credentials](#credentials)).
+The first example is a credential-free `LIMIT 0` bind probe: it checks that `resourcegraph_query` binds and shows its result column without calling Azure. The other two return real rows, so they need an `azure_graph` secret (see [Credentials](#credentials)). The last one joins two scans: Resource Graph reports subscriptions only by GUID, and their display names live in the `ResourceContainers` table.
 
 All the Query Farm Azure workers use the catalog name `azure`. To attach more than one in the same session, give each its own alias (for example `ATTACH 'azure' AS azure_resourcegraph (...)`) and qualify queries with that alias instead of `azure`.
 
