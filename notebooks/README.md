@@ -39,3 +39,12 @@ The fixture is synthetic, with no source timestamp or Azure account data. It sup
 ## Live access is separate
 
 A live `resourcegraph_query` needs an `azure_graph` secret and a service principal with at least Reader on the target subscriptions; follow the [worker credential documentation](https://github.com/Query-farm/vgi-azure-resourcegraph#credentials). Provision real secrets outside saved notebook cells/outputs. Each scan refreshes the full snapshot; skip tokens do not support cross-scan resumption. Independent resource and subscription scans are not an atomic joint live snapshot.
+
+## SQL credential isolation
+
+The notebook creates Haybarn with a fresh temporary `secret_directory` and
+`allow_persistent_secrets=False` before attaching workers. It fully drains and
+checks an empty secret inventory, then creates only explicitly `TEMPORARY`
+public fixture secrets and verifies their `persistent=false`, `storage=memory`
+metadata. Cleanup removes the temporary directory after closing the connection.
+Existing user SQL secrets are neither read, modified nor deleted.
