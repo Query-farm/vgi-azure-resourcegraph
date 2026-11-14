@@ -80,3 +80,7 @@ ATTACH 'azure' AS azure (TYPE vgi, LOCATION '/path/to/vgi-azure-resourcegraph/bi
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## Notebooks
+
+[Complete paged inventory](notebooks/README.md) — an executed synthetic-estate walkthrough with the real worker, complete pagination and regional review that retains missing labels and locations.

@@ -1,0 +1,121 @@
+{
+  "description": "Synthetic inventory, not Azure responses or an account export. Exact declared queries only. No KQL parser, authentication, RBAC or service behavior is emulated.",
+  "snapshot_label": "illustrative fixed fixture; no live source timestamp",
+  "queries": [
+    {
+      "kql": "Resources | project id, name, type, location, subscriptionId",
+      "rows": [
+        {
+          "id": "/subscriptions/sub-a/resourceGroups/demo/providers/synthetic/1",
+          "name": "synthetic-01",
+          "type": "synthetic/compute",
+          "subscriptionId": "sub-a",
+          "location": "eastus"
+        },
+        {
+          "id": "/subscriptions/sub-a/resourceGroups/demo/providers/synthetic/2",
+          "name": "synthetic-02",
+          "type": "synthetic/storage",
+          "subscriptionId": "sub-a",
+          "location": "eastus"
+        },
+        {
+          "id": "/subscriptions/sub-a/resourceGroups/demo/providers/synthetic/3",
+          "name": "synthetic-03",
+          "type": "synthetic/compute",
+          "subscriptionId": "sub-a",
+          "location": "westus"
+        },
+        {
+          "id": "/subscriptions/sub-a/resourceGroups/demo/providers/synthetic/4",
+          "name": "synthetic-04",
+          "type": "synthetic/network",
+          "subscriptionId": "sub-a",
+          "location": "global"
+        },
+        {
+          "id": "/subscriptions/sub-a/resourceGroups/demo/providers/synthetic/5",
+          "name": "synthetic-05",
+          "type": "synthetic/identity",
+          "subscriptionId": "sub-a"
+        },
+        {
+          "id": "/subscriptions/sub-b/resourceGroups/demo/providers/synthetic/6",
+          "name": "synthetic-06",
+          "type": "synthetic/compute",
+          "subscriptionId": "sub-b",
+          "location": "westeurope"
+        },
+        {
+          "id": "/subscriptions/sub-b/resourceGroups/demo/providers/synthetic/7",
+          "name": "synthetic-07",
+          "type": "synthetic/storage",
+          "subscriptionId": "sub-b",
+          "location": "westeurope"
+        },
+        {
+          "id": "/subscriptions/sub-b/resourceGroups/demo/providers/synthetic/8",
+          "name": "synthetic-08",
+          "type": "synthetic/compute",
+          "subscriptionId": "sub-b",
+          "location": "eastus"
+        },
+        {
+          "id": "/subscriptions/sub-b/resourceGroups/demo/providers/synthetic/9",
+          "name": "synthetic-09",
+          "type": "synthetic/network",
+          "subscriptionId": "sub-b",
+          "location": "global"
+        },
+        {
+          "id": "/subscriptions/sub-c/resourceGroups/demo/providers/synthetic/10",
+          "name": "synthetic-10",
+          "type": "synthetic/storage",
+          "subscriptionId": "sub-c",
+          "location": "eastus"
+        },
+        {
+          "id": "/subscriptions/sub-c/resourceGroups/demo/providers/synthetic/11",
+          "name": "synthetic-11",
+          "type": "synthetic/compute",
+          "subscriptionId": "sub-c",
+          "location": "westus"
+        },
+        {
+          "id": "/subscriptions/sub-c/resourceGroups/demo/providers/synthetic/12",
+          "name": "synthetic-12",
+          "type": "synthetic/identity",
+          "subscriptionId": "sub-c",
+          "location": ""
+        },
+        {
+          "id": "/subscriptions/sub-unmatched/resourceGroups/demo/providers/synthetic/13",
+          "name": "synthetic-13",
+          "type": "synthetic/compute",
+          "subscriptionId": "sub-unmatched",
+          "location": "westus"
+        }
+      ]
+    },
+    {
+      "kql": "ResourceContainers | where type =~ 'microsoft.resources/subscriptions' | project id, subscriptionId, name",
+      "rows": [
+        {
+          "id": "/subscriptions/sub-a",
+          "subscriptionId": "sub-a",
+          "name": "Synthetic Commerce"
+        },
+        {
+          "id": "/subscriptions/sub-b",
+          "subscriptionId": "sub-b",
+          "name": "Synthetic Research"
+        },
+        {
+          "id": "/subscriptions/sub-c",
+          "subscriptionId": "sub-c",
+          "name": "Synthetic Shared"
+        }
+      ]
+    }
+  ]
+}
