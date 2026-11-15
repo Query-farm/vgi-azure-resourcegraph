@@ -44,6 +44,17 @@ export const AZURE_GRAPH_SECRET: SecretTypeDescriptor = {
   ),
 };
 
+// Upstream references rendered into the catalog docs (VGI183: link out to the service, API
+// docs and app-registration/permission docs this worker actually calls).
+const SOURCES_MD =
+  "### Sources and references\n\n" +
+  "- [Azure Resource Graph overview](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview) — what ARG indexes\n" +
+  "- [Resources REST API](https://learn.microsoft.com/en-us/rest/api/azureresourcegraph/resourcegraph/resources/resources) — the `Microsoft.ResourceGraph/resources` endpoint `resourcegraph_query` calls\n" +
+  "- [Resource Graph query language](https://learn.microsoft.com/en-us/azure/governance/resource-graph/concepts/query-language) — supported KQL tables and operators\n" +
+  "- [Register an app](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) — create the app-only client credentials, then grant Reader on the target subscriptions";
+const SOURCES_LLM =
+  " Upstream Microsoft docs: Azure Resource Graph overview https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview; Resources REST API https://learn.microsoft.com/en-us/rest/api/azureresourcegraph/resourcegraph/resources/resources; Resource Graph query language https://learn.microsoft.com/en-us/azure/governance/resource-graph/concepts/query-language; Register an app https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app.";
+
 /** Catalog-level tags: docs, discovery, provenance, and the agent-test suite. */
 const CATALOG_TAGS: Record<string, string> = {
   "vgi.title": "Azure Resource Graph",
@@ -56,7 +67,7 @@ const CATALOG_TAGS: Record<string, string> = {
     "and no marker row; each scan re-runs the query fresh (ARG paginates internally with an in-scan " +
     "$skipToken that never becomes a column). Requires an app-only (client-credentials) 'azure_graph' " +
     "secret (tenant_id, client_id, client_secret) whose principal has at least Reader on the target " +
-    "subscriptions. Rows come back as JSON strings, so pull fields with DuckDB's json_extract / -> operators.",
+    "subscriptions. Rows come back as JSON strings, so pull fields with DuckDB's json_extract / -> operators." + SOURCES_LLM,
   "vgi.doc_md":
     "## Azure Resource Graph\n\n" +
     "Whole-estate Azure inventory via Azure Resource Graph (ARG), exposed as one DuckDB table function.\n\n" +
@@ -65,7 +76,7 @@ const CATALOG_TAGS: Record<string, string> = {
     "The KQL string is required (positional); optionally scope to specific subscriptions and tune the " +
     "ARG page size. Each result row is a JSON object — extract fields with `json_extract(result, '$.name')` " +
     "or the `->` / `->>` operators. An app-only `azure_graph` secret (Microsoft Entra client credentials, " +
-    "Reader on the target subscriptions) is required to fetch data.",
+    "Reader on the target subscriptions) is required to fetch data.\n\n" + SOURCES_MD,
   "vgi.keywords": JSON.stringify([
     "azure",
     "resource graph",
