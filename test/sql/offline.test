@@ -1,0 +1,36 @@
+# name: test/sql/offline.test
+# description: vgi-azure-resourcegraph without credentials or network: ATTACH, the advertised functions
+# and tables, and every catalog executable example (credential-free bind probes and
+# static manifests). Runs over every transport; the live Azure scans need an azure_graph
+# secret and are not exercised here.
+# group: [sql]
+
+require-env VGI_TEST_WORKER
+
+# Transport failures must fail the suite rather than silently skip it.
+set ignore_error_messages
+
+statement ok
+ATTACH 'azure' AS azure (TYPE vgi, LOCATION '{VGI_TEST_WORKER}');
+
+query TT
+SELECT DISTINCT schema_name, function_name FROM duckdb_functions() WHERE database_name = 'azure' ORDER BY ALL;
+----
+main	resourcegraph_query
+
+query TT
+SELECT schema_name, table_name FROM duckdb_tables() WHERE database_name = 'azure'
+UNION ALL SELECT schema_name, view_name FROM duckdb_views() WHERE database_name = 'azure' ORDER BY ALL;
+----
+main	kql_recipes
+
+# resourcegraph_bind_probe: Bind resourcegraph_query and expose its result column (credential-free; drop LIMIT 0 and attach an azure_graph secret to run the KQL against your estate)
+query TT
+SELECT column_name, column_type FROM (DESCRIBE SELECT result FROM azure.main.resourcegraph_query('Resources | project name, type, location') LIMIT 0);
+----
+result	VARCHAR
+
+query I
+SELECT count(*) FROM (SELECT result FROM azure.main.resourcegraph_query('Resources | project name, type, location') LIMIT 0);
+----
+0
